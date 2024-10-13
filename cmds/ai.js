@@ -1,9 +1,5 @@
 const axios = require('axios');
 
-let apiState = {
-    useBackupApi: false
-};
-
 module.exports = {
     name: "ai",
     usedby: 0,
@@ -16,32 +12,22 @@ module.exports = {
 
     onReply: async function ({ reply, api, event }) {
         const { threadID, senderID } = event;
-        const mainApiUrl = `https://jonellprojectccapisexplorer.onrender.com/api/gptconvo?ask=${encodeURIComponent(reply)}&id=${senderID}`;
-        const backupApiUrl = `https://gpt4o-hshs.onrender.com/gpt4o?ask=${encodeURIComponent(reply)}&id=${senderID}`;
-        const apiUrl = apiState.useBackupApi ? backupApiUrl : mainApiUrl;
 
+        const followUpApiUrl = `https://ccprojectsjonellapis-production.up.railway.app/api/gpt4o?ask=${encodeURIComponent(reply)}&id=${senderID}`;
         api.setMessageReaction("⏱️", event.messageID, () => {}, true);
-
         try {
-            const response = await axios.get(apiUrl);
-            const { response: followUpResult } = response.data;
+            const response = await axios.get(followUpApiUrl);
+            const { status, response: followUpResult } = response.data;
 
-            api.setMessageReaction("✅", event.messageID, () => {}, true);
-            api.sendMessage(`𝗖𝗛𝗔𝗧𝗚𝗣𝗧\n━━━━━━━━━━━━━━━━━━\n${followUpResult}\n━━━━━━━━━━━━━━━━━━`, threadID, event.messageID);
-
-            if (apiState.useBackupApi && apiUrl === backupApiUrl) {
-                apiState.useBackupApi = false;
+            if (status) {
+                api.setMessageReaction("✅", event.messageID, () => {}, true);
+                api.sendMessage(`𝗖𝗛𝗔𝗧𝗚𝗣𝗧\n━━━━━━━━━━━━━━━━━━\n ${followUpResult}\n━━━━━━━━━━━━━━━━━━`, threadID, event.messageID);
+            } else {
+                throw new Error("Failed to get a valid response from the server.");
             }
         } catch (error) {
             console.error(error);
-
-            if (!apiState.useBackupApi) {
-                apiState.useBackupApi = true;
-                api.sendMessage("Main API failed, switching to backup API.", threadID, event.messageID);
-                return this.onReply({ reply, api, event });
-            } else {
-                api.sendMessage("Both main and backup APIs failed. Please try again later.", threadID, event.messageID);
-            }
+            api.sendMessage(error.message, threadID);
         }
     },
 
@@ -51,40 +37,30 @@ module.exports = {
 
         if (!target[0]) return api.sendMessage("Please provide your question.\n\nExample: ai what is the solar system?", threadID, messageID);
 
-        const ask = encodeURIComponent(target.join(" "));
-        const mainApiUrl = `https://jonellprojectccapisexplorer.onrender.com/api/gptconvo?ask=${ask}&id=${id}`;
-        const backupApiUrl = `https://gpt4o-hshs.onrender.com/gpt4o?ask=${ask}&id=${id}`;
-        const apiUrl = apiState.useBackupApi ? backupApiUrl : mainApiUrl;
+        const apiUrl = `https://ccprojectsjonellapis-production.up.railway.app/api/gpt4o?ask=${encodeURIComponent(target.join(" "))}&id=${id}`;
 
         const lad = await actions.reply("🔎 Searching for an answer. Please wait...", threadID, messageID);
 
         try {
             const response = await axios.get(apiUrl);
-            const { response: result } = response.data;
-            const responseMessage = `𝗖𝗛𝗔𝗧𝗚𝗣𝗧\n━━━━━━━━━━━━━━━━━━\n${result}\n━━━━━━━━━━━━━━━━━━`;
+            const { status, response: result } = response.data;
 
-            api.editMessage(responseMessage, lad.messageID, threadID, messageID);
+            if (status) {
+                const responseMessage = `𝗖𝗛𝗔𝗧𝗚𝗣𝗧\n━━━━━━━━━━━━━━━━━━\n${result}\n━━━━━━━━━━━━━━━━━━`;
+                api.editMessage(responseMessage, lad.messageID, event.threadID, messageID);
 
-            global.client.onReply.push({
-                name: this.name,
-                messageID: lad.messageID,
-                author: event.senderID,
-            });
-
-            if (apiState.useBackupApi && apiUrl === backupApiUrl) {
-                apiState.useBackupApi = false;
+                global.client.onReply.push({
+                    name: this.name,
+                    messageID: lad.messageID,
+                    author: event.senderID,
+                });
+            } else {
+                throw new Error("Failed to get a valid response from the server.");
             }
+
         } catch (error) {
             console.error(error);
-
-            if (!apiState.useBackupApi) {
-                apiState.useBackupApi = true;
-                api.editMessage("Main API failed, switching to backup API error of "+ error.message, lad.messageID, threadID, messageID);
-                return this.onLaunch({ event, actions, target, api });
-            } else {
-                api.editMessage(`Both main and backup APIs failed error of ${error}. Please try again later.`, lad.messageID, threadID, messageID);
-            }
+            api.sendMessage(error.message, threadID, messageID);
         }
     }
 };
-                               

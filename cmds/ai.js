@@ -35,7 +35,7 @@ module.exports = {
 
         if (!target[0]) return api.sendMessage("Please provide your question.\n\nExample: ai what is the solar system?", threadID, messageID);
 
-        // Update to the new API URL
+        
         const apiUrl = `https://ccprojectsjonellapis-production.up.railway.app/api/gpt4o?ask=${encodeURIComponent(target.join(" "))}&id=${id}`;
 
         const lad = await actions.reply("🔎 Searching for an answer. Please wait...", threadID, messageID);
@@ -47,7 +47,7 @@ module.exports = {
                 if (attachment.type === "photo") {
                     const imageURL = attachment.url;
 
-                    const geminiUrl = `https://joncll.serv00.net/chat.php?ask=${encodeURIComponent(target.join(" "))}&imgurl=${encodeURIComponent(imageURL)}`;
+                    const geminiUrl = `https://ccprojectsjonellapis-production.up.railway.app/api/gemini?ask=${encodeURIComponent(target.join(" "))}&imgurl=${encodeURIComponent(imageURL)}`;
                     const response = await axios.get(geminiUrl);
                     const { vision } = response.data;
 

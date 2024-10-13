@@ -13,18 +13,16 @@ module.exports = {
     onReply: async function ({ reply, api, event }) {
         const { threadID, senderID } = event;
 
+        
         const followUpApiUrl = `https://ccprojectsjonellapis-production.up.railway.app/api/gpt4o?ask=${encodeURIComponent(reply)}&id=${senderID}`;
         api.setMessageReaction("⏱️", event.messageID, () => {}, true);
+
         try {
             const response = await axios.get(followUpApiUrl);
-            const { status, response: followUpResult } = response.data;
+            const followUpResult = response.data.response;
 
-            if (status) {
-                api.setMessageReaction("✅", event.messageID, () => {}, true);
-                api.sendMessage(`𝗖𝗛𝗔𝗧𝗚𝗣𝗧\n━━━━━━━━━━━━━━━━━━\n ${followUpResult}\n━━━━━━━━━━━━━━━━━━`, threadID, event.messageID);
-            } else {
-                throw new Error("Failed to get a valid response from the server.");
-            }
+            api.setMessageReaction("✅", event.messageID, () => {}, true);
+            api.sendMessage(`𝗖𝗛𝗔𝗧𝗚𝗣𝗧\n━━━━━━━━━━━━━━━━━━\n ${followUpResult}\n━━━━━━━━━━━━━━━━━━`, threadID, event.messageID);
         } catch (error) {
             console.error(error);
             api.sendMessage(error.message, threadID);
@@ -37,26 +35,40 @@ module.exports = {
 
         if (!target[0]) return api.sendMessage("Please provide your question.\n\nExample: ai what is the solar system?", threadID, messageID);
 
+        // Update to the new API URL
         const apiUrl = `https://ccprojectsjonellapis-production.up.railway.app/api/gpt4o?ask=${encodeURIComponent(target.join(" "))}&id=${id}`;
 
         const lad = await actions.reply("🔎 Searching for an answer. Please wait...", threadID, messageID);
 
         try {
-            const response = await axios.get(apiUrl);
-            const { status, response: result } = response.data;
+            if (event.type === "message_reply" && event.messageReply.attachments && event.messageReply.attachments[0]) {
+                const attachment = event.messageReply.attachments[0];
 
-            if (status) {
-                const responseMessage = `𝗖𝗛𝗔𝗧𝗚𝗣𝗧\n━━━━━━━━━━━━━━━━━━\n${result}\n━━━━━━━━━━━━━━━━━━`;
-                api.editMessage(responseMessage, lad.messageID, event.threadID, messageID);
+                if (attachment.type === "photo") {
+                    const imageURL = attachment.url;
 
-                global.client.onReply.push({
-                    name: this.name,
-                    messageID: lad.messageID,
-                    author: event.senderID,
-                });
-            } else {
-                throw new Error("Failed to get a valid response from the server.");
+                    const geminiUrl = `https://joncll.serv00.net/chat.php?ask=${encodeURIComponent(target.join(" "))}&imgurl=${encodeURIComponent(imageURL)}`;
+                    const response = await axios.get(geminiUrl);
+                    const { vision } = response.data;
+
+                    if (vision) {
+                        return api.editMessage(`𝗚𝗲𝗺𝗶𝗻𝗶 𝗩𝗶𝘀𝗶𝗼𝗻 𝗜𝗺𝗮𝗴𝗲 𝗥𝗲𝗰𝗼𝗴𝗻𝗶𝘁𝗶𝗼𝗻 \n━━━━━━━━━━━━━━━━━━\n${vision}\n━━━━━━━━━━━━━━━━━━\n`, lad.messageID, event.threadID, messageID);
+                    } else {
+                        return api.sendMessage("🤖 Failed to recognize the image.", threadID, messageID);
+                    }
+                }
             }
+
+            const response = await axios.get(apiUrl);
+            const result = response.data.response; 
+            const responseMessage = `𝗖𝗛𝗔𝗧𝗚𝗣𝗧\n━━━━━━━━━━━━━━━━━━\n${result}\n━━━━━━━━━━━━━━━━━━`;
+            api.editMessage(responseMessage, lad.messageID, event.threadID, messageID);
+
+            global.client.onReply.push({
+                name: this.name,
+                messageID: lad.messageID,
+                author: event.senderID,
+            });
 
         } catch (error) {
             console.error(error);

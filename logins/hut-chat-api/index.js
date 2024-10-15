@@ -80,7 +80,7 @@ function buildAPI(globalOptions, html, jar) {
 		return val.cookieString().split("=")[0] === "c_user";
 	});
 
-	const objCookie = jar.getCookies("https://www.facebook.com").reduce(function (obj, val) {
+	const objCookie = jar.getCookies("https:/mbasic.facebook.com").reduce(function (obj, val) {
 		obj[val.cookieString().split("=")[0]] = val.cookieString().split("=")[1];
 		return obj;
 	}, {});
@@ -225,22 +225,22 @@ function makeLogin(jar, email, password, loginOptions, callback, prCallback) {
 		const willBeCookies = html.split("\"_js_");
 		willBeCookies.slice(1).map(function (val) {
 			const cookieData = JSON.parse("[\"" + utils.getFrom(val, "", "]") + "]");
-			jar.setCookie(utils.formatCookie(cookieData, "facebook"), "https://www.facebook.com");
+			jar.setCookie(utils.formatCookie(cookieData, "facebook"), "https://mbasic.facebook.com");
 		});
 		// ---------- Very Hacky Part Ends -----------------
 
 
 		return utils
-			.post("https://www.facebook.com/login/device-based/regular/login/?login_attempt=1&lwv=110", jar, form, loginOptions)
+			.post("https://mbasic.facebook.com/login/device-based/regular/login/?login_attempt=1&lwv=110", jar, form, loginOptions)
 			.then(utils.saveCookies(jar))
 			.then(function (res) {
 				const headers = res.headers;
 				if (!headers.location) throw { error: "Wrong username/password." };
 
 				// This means the account has login approvals turned on.
-				if (headers.location.indexOf('https://www.facebook.com/checkpoint/') > -1) {
+				if (headers.location.indexOf('https://mbasic.facebook.com/checkpoint/') > -1) {
 					log.info("login", "You have login approvals turned on.");
-					const nextURL = 'https://www.facebook.com/checkpoint/?next=https%3A%2F%2Fwww.facebook.com%2Fhome.php';
+					const nextURL = 'https://mbasic.facebook.com/checkpoint/?next=https%3A%2F%2Fwww.facebook.com%2Fhome.php';
 
 					return utils
 						.get(headers.location, jar, null, loginOptions)
@@ -324,7 +324,7 @@ function makeLogin(jar, email, password, loginOptions, callback, prCallback) {
 												});
 										} else {
 											utils
-												.post("https://www.facebook.com/checkpoint/?next=https%3A%2F%2Fwww.facebook.com%2Fhome.php", jar, form, loginOptions, null, { "Referer": "https://www.facebook.com/checkpoint/?next" })
+												.post("https://mbasic.facebook.com/checkpoint/?next=https%3A%2F%2Fwww.facebook.com%2Fhome.php", jar, form, loginOptions, null, { "Referer": "https://www.facebook.com/checkpoint/?next" })
 												.then(utils.saveCookies(jar))
 												.then(res => {
 													try {
@@ -381,7 +381,7 @@ function makeLogin(jar, email, password, loginOptions, callback, prCallback) {
 						});
 				}
 
-				return utils.get('https://www.facebook.com/', jar, null, loginOptions).then(utils.saveCookies(jar));
+				return utils.get('https://mbasic.facebook.com/', jar, null, loginOptions).then(utils.saveCookies(jar));
 			});
 	};
 }
@@ -424,21 +424,21 @@ function loginHelper(appState, email, password, globalOptions, callback, prCallb
 		});
 
 		// Load the main page.
-		mainPromise = utils.get('https://www.facebook.com/', jar, null, globalOptions, { noRef: true }).then(utils.saveCookies(jar));
+		mainPromise = utils.get('https://mbasic.facebook.com/', jar, null, globalOptions, { noRef: true }).then(utils.saveCookies(jar));
 	} else {
 		// Open the main page, then we login with the given credentials and finally
 		// load the main page again (it'll give us some IDs that we need)
 		mainPromise = utils
-			.get("https://www.facebook.com/", null, null, globalOptions, { noRef: true })
+			.get("https://mbasic.facebook.com/", null, null, globalOptions, { noRef: true })
 			.then(utils.saveCookies(jar))
 			.then(makeLogin(jar, email, password, globalOptions, callback, prCallback))
 			.then(function () {
-				return utils.get('https://www.facebook.com/', jar, null, globalOptions).then(utils.saveCookies(jar));
+				return utils.get('https://mbasic.facebook.com/', jar, null, globalOptions).then(utils.saveCookies(jar));
 			});
 	}
 
 
-	let redirectArr = [1, "https://m.facebook.com/"];
+	let redirectArr = [1, "https://mbasic.facebook.com/"];
 	let ctx;
 	let api;
 	function checkAndFixErr(res) {
@@ -473,7 +473,7 @@ function loginHelper(appState, email, password, globalOptions, callback, prCallb
 			if (!Regex_Via.test(res.body)) {
 				//www.facebook.com
 				globalOptions.userAgent = "Mozilla/5.0 (Linux; Android 9; SM-G973U Build/PPR1.180610.011) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/69.0.3497.100 Mobile Safari/537.36";
-				return utils.get('https://www.facebook.com/', jar, null, globalOptions, { noRef: true }).then(utils.saveCookies(jar));
+				return utils.get('https://mbasic.facebook.com/', jar, null, globalOptions, { noRef: true }).then(utils.saveCookies(jar));
 			}
 			else return res;
 		})
@@ -491,12 +491,12 @@ function loginHelper(appState, email, password, globalOptions, callback, prCallb
 	if (globalOptions.pageID) {
 		mainPromise = mainPromise
 			.then(function () {
-				return utils.get('https://www.facebook.com/' + ctx.globalOptions.pageID + '/messages/?section=messages&subsection=inbox', ctx.jar, null, globalOptions);
+				return utils.get('https://mbasic.facebook.com/' + ctx.globalOptions.pageID + '/messages/?section=messages&subsection=inbox', ctx.jar, null, globalOptions);
 			})
 			.then(function (resData) {
-				let url = utils.getFrom(resData.body, 'window.location.replace("https:\\/\\/www.facebook.com\\', '");').split('\\').join('');
+				let url = utils.getFrom(resData.body, 'window.location.replace("https:\\/\\/mbasic.facebook.com\\', '");').split('\\').join('');
 				url = url.substring(0, url.length - 1);
-				return utils.get('https://www.facebook.com' + url, ctx.jar, null, globalOptions);
+				return utils.get('https://mbasic.facebook.com' + url, ctx.jar, null, globalOptions);
 			});
 	}
 
@@ -523,10 +523,10 @@ function login(loginData, options, callback) {
 		selfListenEvent: false,
 		listenEvents: false,
 		listenTyping: false,
-		updatePresence: true,
-		forceLogin: true,
+		updatePresence: false,
+		forceLogin: false,
 		autoMarkDelivery: true,
-		autoMarkRead: true,
+		autoMarkRead: false,
 		autoReconnect: true,
 		logRecordSize: defaultLogRecordSize,
 		online: true,

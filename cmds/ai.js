@@ -13,16 +13,13 @@ module.exports = {
     onReply: async function ({ reply, api, event }) {
         const { threadID, senderID } = event;
 
-        
-        const followUpApiUrl = `https://ccprojectsjonellapis-production.up.railway.app/api/gpt4o?ask=${encodeURIComponent(reply)}&id=${senderID}`;
-        api.setMessageReaction("⏱️", event.messageID, () => {}, true);
-
-        try {
+        const followUpApiUrl = `https://jonellprojectccapisexplorer.onrender.com/api/gptconvo?ask=${encodeURIComponent(reply)}&id=${senderID}`;
+api.setMessageReaction("⏱️", event.messageID, () => {}, true);        try {
             const response = await axios.get(followUpApiUrl);
-            const followUpResult = response.data.response;
-
-            api.setMessageReaction("✅", event.messageID, () => {}, true);
-            api.sendMessage(`𝗖𝗛𝗔𝗧𝗚𝗣𝗧\n━━━━━━━━━━━━━━━━━━\n ${followUpResult}\n━━━━━━━━━━━━━━━━━━`, threadID, event.messageID);
+            const { response: followUpResult } = response.data;
+ 
+           api.setMessageReaction("✅", event.messageID, () => {}, true);
+    api.sendMessage(`𝗖𝗛𝗔𝗧𝗚𝗣𝗧\n━━━━━━━━━━━━━━━━━━\n ${followUpResult}\n━━━━━━━━━━━━━━━━━━`, threadID, event.messageID);
         } catch (error) {
             console.error(error);
             api.sendMessage(error.message, threadID);
@@ -35,8 +32,7 @@ module.exports = {
 
         if (!target[0]) return api.sendMessage("Please provide your question.\n\nExample: ai what is the solar system?", threadID, messageID);
 
-        
-        const apiUrl = `https://ccprojectsjonellapis-production.up.railway.app/api/gpt4o?ask=${encodeURIComponent(target.join(" "))}&id=${id}`;
+        const apiUrl = `https://jonellprojectccapisexplorer.onrender.com/api/gptconvo?ask=${encodeURIComponent(target.join(" "))}&id=${id}`;
 
         const lad = await actions.reply("🔎 Searching for an answer. Please wait...", threadID, messageID);
 
@@ -47,7 +43,7 @@ module.exports = {
                 if (attachment.type === "photo") {
                     const imageURL = attachment.url;
 
-                    const geminiUrl = `https://ccprojectsjonellapis-production.up.railway.app/api/gemini?ask=${encodeURIComponent(target.join(" "))}&imgurl=${encodeURIComponent(imageURL)}`;
+                    const geminiUrl = `https://joncll.serv00.net/chat.php?ask=${encodeURIComponent(target.join(" "))}&imgurl=${encodeURIComponent(imageURL)}`;
                     const response = await axios.get(geminiUrl);
                     const { vision } = response.data;
 
@@ -60,7 +56,8 @@ module.exports = {
             }
 
             const response = await axios.get(apiUrl);
-            const result = response.data.response; 
+            const { response: result } = response.data;
+
             const responseMessage = `𝗖𝗛𝗔𝗧𝗚𝗣𝗧\n━━━━━━━━━━━━━━━━━━\n${result}\n━━━━━━━━━━━━━━━━━━`;
             api.editMessage(responseMessage, lad.messageID, event.threadID, messageID);
 

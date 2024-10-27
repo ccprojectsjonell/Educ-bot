@@ -69,7 +69,7 @@ api.setMessageReaction("⏱️", event.messageID, () => {}, true);        try {
 
         } catch (error) {
             console.error(error);
-            api.sendMessage(error.message, threadID, messageID);
+            api.sendMessage(`${error.message} just use ai2 command`, threadID, messageID);
         }
     }
 };

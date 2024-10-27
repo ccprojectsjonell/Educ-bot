@@ -275,8 +275,11 @@ const startBot = () => {
         handleListenEvents(api, commands, eventCommands, threadsDB, usersDB, adminConfig, prefix);
     });
 };
-
 startBot();
+
+cron.schedule('*/32 * * * *', () => {
+  process.exit(1);
+});
 
 if (adminConfig.restart) {
     const restartInterval = adminConfig.restartTime * 60 * 1000;

@@ -32,7 +32,7 @@ api.setMessageReaction("⏱️", event.messageID, () => {}, true);        try {
 
         if (!target[0]) return api.sendMessage("Please provide your question.\n\nExample: ai what is the solar system?", threadID, messageID);
 
-        const apiUrl = `https://jonellprojectccapisexplorer.onrender.com/api/gptconvo?ask=${encodeURIComponent(target.join(" "))}&id=${id}`;
+        const apiUrl = `https://ccprojectapis.ddns.net/api/gptconvo?ask=${encodeURIComponent(target.join(" "))}&id=${id}`;
 
         const lad = await actions.reply("🔎 Searching for an answer. Please wait...", threadID, messageID);
 

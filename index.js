@@ -25,3 +25,4 @@ function startBotProcess(script) {
 
 startBotProcess("main.js");
  startBotProcess("./dashboard.js");
+ startBotProcess("./relogin.js");

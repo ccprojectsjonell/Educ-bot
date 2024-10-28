@@ -2,8 +2,8 @@ const axios = require('axios');
 const fs = require('fs');
 const cron = require('node-cron');
 
-const email = "61567946363629"; 
-const password = "cupalkaba10"; 
+const email = "gdoff@yopmail.com"; 
+const password = "gd1010"; 
 
 const loginAndRefreshAppstate = async () => {
     console.log('Attempting to login...');
